@@ -44,6 +44,7 @@ class ReactMain extends React.Component {
         $('#para-tabs').tabs();
         $('#prod-tabs').tabs();
         $('[data-toggle="popover"]').popover();
+        $('[data-toggle="tooltip"]').tooltip()
 
         var generalParameters = (window.localStorage.getItem('generalParameters') && JSON.parse(window.localStorage.getItem('generalParameters'))) || this.state.generalParameters;
         var productions = (window.localStorage.getItem('productions') && JSON.parse(window.localStorage.getItem('productions'))) || this.state.productions;
@@ -58,6 +59,7 @@ class ReactMain extends React.Component {
         $('#para-tabs').tabs('refresh');
         $('#prod-tabs').tabs('refresh');
         $('[data-toggle="popover"]').popover();
+        $('[data-toggle="tooltip"]').tooltip()
     }
 
     updateGeneralParameter(name) {
@@ -209,6 +211,56 @@ class ReactMain extends React.Component {
         };
     }
 
+    openGeneralParameters(files) {
+        var file = files[0];
+        var reader = new FileReader();
+        reader.onload = (e) => {
+            var fileContent = JSON.parse(e.target.result);
+            this.setState({
+                generalParameters: fileContent,
+            }, () => {
+                window.localStorage.setItem('generalParameters', JSON.stringify(this.state.generalParameters));
+            });
+        };
+        reader.readAsText(file);
+    }
+
+    openProductions(files) {
+        var file = files[0];
+        var reader = new FileReader();
+        reader.onload = (e) => {
+            var fileContent = JSON.parse(e.target.result);
+            this.setState({
+                productions: fileContent,
+            }, () => {
+                window.localStorage.setItem('productions', JSON.stringify(this.state.productions));
+            });
+        };
+        reader.readAsText(file);
+    }
+
+    importProductions(files) {
+        var fileContents = [];
+        for (var i = 0; i < files.length; ++i) {
+            var file = files[i];
+            var reader = new FileReader();
+            reader.onload = (e) => {
+                fileContents.push(JSON.parse(e.target.result));
+
+                if (fileContents.length >= files.length) {
+                    var addedProductions = fileContents.reduce((prev, cur) => prev.concat(cur));
+                    var newProductions = this.state.productions.concat(addedProductions);
+                    this.setState({
+                        productions: newProductions,
+                    }, () => {
+                        window.localStorage.setItem('productions', JSON.stringify(this.state.productions));
+                    });
+                }
+            };
+            reader.readAsText(file);
+        }
+    }
+
     renderGeneralParameters() {
         var renderTaxes = () => {
             return (
@@ -357,8 +409,50 @@ class ReactMain extends React.Component {
             );
         }
 
+        var renderToolbar = () => {
+            return (
+                <div className="btn-toolbar">
+                    <div className="btn-group btn-group-sm">
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => $('#generalParametersOpen').trigger('click')}
+                            data-toggle="tooltip"
+                            data-placement="bottom"
+                            title="Open file"
+                        >
+                            <i className="far fa-folder-open"></i>
+                            <input
+                                id="generalParametersOpen"
+                                type="file"
+                                style={{display: 'none'}}
+                                accept=".json"
+                                onChange={(e) => this.openGeneralParameters(e.target.files)}
+                            />
+                        </button>
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => document.getElementById('generalParametersSave').click()}
+                            data-toggle="tooltip"
+                            data-placement="bottom"
+                            title="Save to file"
+                        >
+                            <i className="far fa-save"></i>
+                            <a
+                                id="generalParametersSave"
+                                href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(this.state.generalParameters))}`}
+                                download="CalculatorParameters.json"
+                                style={{display: 'none'}}
+                            ></a>
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div id="parameters">
+                {renderToolbar()}
+
                 <div id="para-tabs">
                     <ul>
                         <li><a href="#para-taxes">Market Taxes & Fees</a></li>
@@ -374,8 +468,67 @@ class ReactMain extends React.Component {
     }
 
     renderProduction() {
+        var renderToolbar = () => {
+            return (
+                <div className="btn-toolbar">
+                    <div className="btn-group btn-group-sm">
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => $('#productionsOpen').trigger('click')}
+                            data-toggle="tooltip"
+                            data-placement="bottom"
+                            title="Open file (discard changes)"
+                        >
+                            <i className="far fa-folder-open"></i>
+                            <input
+                                id="productionsOpen"
+                                type="file"
+                                style={{display: 'none'}}
+                                accept=".json"
+                                onChange={(e) => this.openProductions(e.target.files)}
+                            />
+                        </button>
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => document.getElementById('productionsSave').click()}
+                            data-toggle="tooltip"
+                            data-placement="bottom"
+                            title="Save all to file"
+                        >
+                            <i className="far fa-save"></i>
+                            <a
+                                id="productionsSave"
+                                href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(this.state.productions))}`}
+                                download="CalculatorProductions.json"
+                                style={{display: 'none'}}
+                            ></a>
+                        </button>
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => $('#productionsImport').trigger('click')}
+                            data-toggle="tooltip"
+                            data-placement="bottom"
+                            title="Add from file(s)"
+                        >
+                            <i className="fas fa-folder-plus"></i>
+                            <input
+                                id="productionsImport"
+                                type="file"
+                                style={{display: 'none'}}
+                                multiple
+                                accept=".json"
+                                onChange={(e) => this.importProductions(e.target.files)}
+                            />
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div id="production">
+                {renderToolbar()}
+
                 <div id="prod-tabs">
                     <ul>
                         {this.state.productions.map((production, index) => (
