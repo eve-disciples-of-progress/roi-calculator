@@ -44,6 +44,13 @@ class ReactMain extends React.Component {
         $('#para-tabs').tabs();
         $('#prod-tabs').tabs();
         $('[data-toggle="popover"]').popover();
+
+        var generalParameters = (window.localStorage.getItem('generalParameters') && JSON.parse(window.localStorage.getItem('generalParameters'))) || this.state.generalParameters;
+        var productions = (window.localStorage.getItem('productions') && JSON.parse(window.localStorage.getItem('productions'))) || this.state.productions;
+        this.setState({
+            generalParameters,
+            productions,
+        });
     }
 
     componentDidUpdate() {
@@ -77,6 +84,8 @@ class ReactMain extends React.Component {
 
             main.setState({
                 generalParameters: newGeneralParameters,
+            }, () => {
+                window.localStorage.setItem('generalParameters', JSON.stringify(main.state.generalParameters));
             });
         };
     }
@@ -99,7 +108,9 @@ class ReactMain extends React.Component {
                         minerals: newMinerals,
                     }
                 },
-            })
+            }, () => {
+                window.localStorage.setItem('generalParameters', JSON.stringify(main.state.generalParameters));
+            });
         };
     }
 
@@ -125,6 +136,8 @@ class ReactMain extends React.Component {
 
             main.setState({
                 productions: newProductions,
+            }, () => {
+                window.localStorage.setItem('productions', JSON.stringify(main.state.productions));
             });
         }
     }
@@ -152,6 +165,8 @@ class ReactMain extends React.Component {
 
             main.setState({
                 productions: newProductions,
+            }, () => {
+                window.localStorage.setItem('productions', JSON.stringify(main.state.productions));
             });
         }
     }
@@ -177,12 +192,13 @@ class ReactMain extends React.Component {
                     }
                 }
             })
-        });
-
-        setTimeout(() => {
-            if (this.state.productions.length === 1) {
-                $('#prod-tabs').tabs('option', 'active', 0);
-            }
+        }, () => {
+            window.localStorage.setItem('productions', JSON.stringify(this.state.productions));
+            setTimeout(() => {
+                if (this.state.productions.length === 1) {
+                    $('#prod-tabs').tabs('option', 'active', 0);
+                }
+            });
         });
     }
 
@@ -191,6 +207,8 @@ class ReactMain extends React.Component {
         return function() {
             main.setState({
                 productions: main.state.productions.slice(0, index).concat(main.state.productions.slice(index + 1)),
+            }, () => {
+                window.localStorage.setItem('productions', JSON.stringify(main.state.productions));
             });
         };
     }
