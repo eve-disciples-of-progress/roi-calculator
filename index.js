@@ -194,11 +194,7 @@ class ReactMain extends React.Component {
             })
         }, () => {
             window.localStorage.setItem('productions', JSON.stringify(this.state.productions));
-            setTimeout(() => {
-                if (this.state.productions.length === 1) {
-                    $('#prod-tabs').tabs('option', 'active', 0);
-                }
-            });
+            $('#prod-tabs').tabs('option', 'active', this.state.productions.length - 1);
         });
     }
 
