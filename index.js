@@ -4,6 +4,35 @@ function capitalizeStringStart(str) {
     return str && str[0].toUpperCase() + str.slice(1);
 }
 
+function parseTime(str) {
+    function minsToSecs(mins) {
+        return mins * 60;
+    }
+    function hrsToSecs(hrs) {
+        return hrs * minsToSecs(60);
+    }
+
+    var hrs = 0;
+    var mins = 0;
+    var secs = 0;
+    var parts = str.split(':');
+    switch (parts.length) {
+        case 2: {
+            hrs = 0;
+            hrs = Number(parts[0]);
+            mins = Number(parts[1]);
+            break;
+        }
+        case 3: {
+            hrs = Number(parts[0]);
+            mins = Number(parts[1]);
+            secs = Number(parts[2]);
+            break;
+        }
+    }
+    return secs + minsToSecs(mins) + hrsToSecs(hrs);
+}
+
 class ReactMain extends React.Component {
     constructor(props) {
         super(props);
@@ -744,7 +773,7 @@ class ReactMain extends React.Component {
                     <h2>{production.name}</h2>
                     <p>
                         Profit / Unit: {production.profitPerUnit}<br/>
-                        Profit / Hour: NOT SUPPORTED YET
+                        Profit / Hour: {production.profitPerHour}
                     </p>
                     
                     <h3>Income: {production.income}</h3>
@@ -798,6 +827,11 @@ class ReactMain extends React.Component {
 
             var totalExpenditures = totalMineralsExpense + manufacturingCost + brokerFeeInIsk + salesTaxInIsk;
 
+            var timeInSeconds = parseTime(production.constructionTime);
+            var timeNeededInSeconds = timeInSeconds - (timeInSeconds * percentToNumber(production.timeEfficiency));
+            var timeNeededInMinutes = timeNeededInSeconds / 60;
+            var timeNeededInHours = timeNeededInMinutes / 60;
+
             return {
                 name: production.name,
 
@@ -818,11 +852,11 @@ class ReactMain extends React.Component {
                 expenditures: Math.round(totalExpenditures),
                 income: Math.round(production.salePrice),
                 profitPerUnit: Math.round(production.salePrice - totalExpenditures),
+                profitPerHour: Math.round((production.salePrice - totalExpenditures) / timeNeededInHours)
             };
         });
 
-        // TODO: Sort by Profit/Hr when implemented
-        productionOutputs.sort((a, b) => b.profitPerUnit - a.profitPerUnit);
+        productionOutputs.sort((a, b) => b.profitPerHour - a.profitPerHour);
 
         return (
             <div id="output">
